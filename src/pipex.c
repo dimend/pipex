@@ -1,4 +1,5 @@
 #include "pipex.h"
+#include <stdio.h>
 
 void error_exit(char *msg)
 {
@@ -30,10 +31,11 @@ void pid_handler(pid_t pid, int pipefd[2], short int read_end, char *cmd)
     }
 }
 
-int main() 
+int main(int argC, char **argV, char **envp) 
 {
     int pipefd[2];
     pid_t pid1, pid2;
+    int i = 0;
 
     if (pipe(pipefd) == -1)
         error_exit("Error creating pipe");
@@ -53,6 +55,16 @@ int main()
 
     close(pipefd[0]);
     close(pipefd[1]);
+
+    printf("%d\n", argC);
+    printf("%s\n", argV[i]);
+
+    while(envp[i])
+    {
+        if(envp[i][0] == 'P' && envp[i][1] == 'A' && envp[i][2] == 'T' && envp[i][3] == 'H')
+            printf("%s\n", envp[i]);
+        i++;
+    }
 
     wait(NULL);
     wait(NULL);
