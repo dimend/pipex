@@ -2,16 +2,21 @@
 #include "libft/libft.h"
 #include <stdio.h>
 
-void error()
+void error(char *cmd, char *message)
 {
-    perror("Error");
+    ft_putstr_fd("./pipex: ", 2);
+    ft_putstr_fd(cmd, 2);
+    ft_putstr_fd(": ", 2);
+    ft_putstr_fd(message, 2);
+    write(2,"\n", 1);
+    free(cmd);
     exit(EXIT_FAILURE);
 }
 
 char **get_all_paths(char **envp)
 {
     int i;
-    char **paths;
+    char **paths = NULL;
 
     i = 0;
     while(envp[i])
@@ -33,21 +38,27 @@ char *get_path(char **envp, char *cmd)
     char *finalpath;
 
     paths = get_all_paths(envp);
+    if (!paths)
+        return (NULL);
     i = 0;
     while(paths[i])
     {
-        paths[i] = ft_strjoin(paths[i], "/");
-        paths[i] = ft_strjoin(paths[i], cmd);
+        paths[i] = ft_strcatrealloc(paths[i], "/");
+        paths[i] = ft_strcatrealloc(paths[i], cmd);
         if (access(paths[i], F_OK) == 0)
         {
             finalpath = ft_strdup(paths[i]);
-            i = 0;
+            i = -1;
             while (paths[++i])
 			    free(paths[i]);
             return (finalpath);
         }
         i++;
     }
+    i = -1;
+    while (paths[++i])
+		free(paths[i]);
+    free(paths);
     return (NULL);
 }
 
@@ -56,43 +67,55 @@ void execute(char *argV, char **envp)
 	char	**cmd;
 	int 	i;
 	char	*path;
+    char    *command;
 	
 	i = -1;
 	cmd = ft_split(argV, ' ');
 	path = get_path(envp, cmd[0]);
+    command = ft_strdup(cmd[0]);
 	if (!path)	
 	{
 		while (cmd[++i])
 			free(cmd[i]);
 		free(cmd);
-		error();
+        error(command, "command not found");
 	}
 	if (execve(path, cmd, envp) == -1)
-		error();
+		error(argV ,"execve");
+    free(path);
+    free(command);
 }
 
 void pid_handler(char **argV, char **envp, int *pipefd, short int read)
 {
 	int		file;
+    char    *filename;
 
+    filename = ft_strdup(argV[1]);
     if(read == 0)
     {
-        file = open(argV[1], O_RDONLY, 777);
-        dup2(pipefd[1], STDOUT_FILENO); //dup pipefd and assign stdout so that stdout goes to the pipe
-	    dup2(file, STDIN_FILENO);       //dup file and assign stdin to read from file and not stdin
+        close(pipefd[0]);
+        file = open(filename, O_RDONLY, 777);
         if (file == -1)
-		    error();
-	    close(pipefd[0]);
+		    error(filename, "No such file or directory");
+        dup2(pipefd[1], STDOUT_FILENO); //dup pipefd and assign stdout so that stdout goes to the pipe
+        close(pipefd[1]);
+	    dup2(file, STDIN_FILENO);       //dup file and assign stdin to read from file and not stdin
+        close(file);
+        free(filename);
 	    execute(argV[2], envp);
     }
     else
     {
 	    file = open(argV[4], O_WRONLY | O_CREAT | O_TRUNC, 777);
 	    if (file == -1)
-		    error();
+		    error(filename, "No such file or directory");
+        close(pipefd[1]);
 	    dup2(pipefd[0], STDIN_FILENO);  //dup pipefd to stin to read from pipe
+        close(pipefd[0]);
 	    dup2(file, STDOUT_FILENO);      //dup file to stdout so it writes to file
-	    close(pipefd[1]);
+        close(file);
+        free(filename);
 	    execute(argV[3], envp);
     }
 }
@@ -105,10 +128,10 @@ int main(int argC, char **argV, char **envp)
     if(argC == 5)
     {
         if(pipe(pipefd) == -1)
-            error();
+            error(argV[1], "pipefd1");
         pid = fork();
         if(pid == -1)
-            error();
+            error(argV[1], "pipefd2");
         if(pid == 0)
             pid_handler(argV, envp, pipefd, 0); //child
         waitpid(pid, NULL, 0);
