@@ -4,11 +4,19 @@
 
 void error(char *cmd, char *message)
 {
-    ft_putstr_fd("./pipex: ", 2);
-    ft_putstr_fd(cmd, 2);
-    ft_putstr_fd(": ", 2);
-    ft_putstr_fd(message, 2);
-    write(2,"\n", 1);
+    if(message[0] == 'p')
+    {
+        ft_putstr_fd("./pipex: ", 2);
+        perror(cmd);
+    }
+    else
+    {
+        ft_putstr_fd("./pipex: ", 2);
+        ft_putstr_fd(cmd, 2);
+        ft_putstr_fd(": ", 2);
+        ft_putstr_fd(message, 2);
+        write(2,"\n", 1);
+    }
     free(cmd);
     exit(EXIT_FAILURE);
 }
@@ -91,13 +99,13 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
 	int		file;
     char    *filename;
 
-    filename = ft_strdup(argV[1]);
     if(read == 0)
     {
+        filename = ft_strdup(argV[1]);
         close(pipefd[0]);
-        file = open(filename, O_RDONLY, 777);
+        file = open(filename, O_RDONLY, 0777);
         if (file == -1)
-		    error(filename, "No such file or directory");
+		    error(filename, "perror");
         dup2(pipefd[1], STDOUT_FILENO); //dup pipefd and assign stdout so that stdout goes to the pipe
         close(pipefd[1]);
 	    dup2(file, STDIN_FILENO);       //dup file and assign stdin to read from file and not stdin
@@ -107,9 +115,10 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
     }
     else
     {
-	    file = open(argV[4], O_WRONLY | O_CREAT | O_TRUNC, 777);
+        filename = ft_strdup(argV[4]);
+	    file = open(argV[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	    if (file == -1)
-		    error(filename, "No such file or directory");
+		    error(filename, "perror");
         close(pipefd[1]);
 	    dup2(pipefd[0], STDIN_FILENO);  //dup pipefd to stin to read from pipe
         close(pipefd[0]);
