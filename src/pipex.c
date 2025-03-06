@@ -2,7 +2,7 @@
 #include "libft/libft.h"
 #include <stdio.h>
 
-void error(char *cmd, char *message)
+void error(char *cmd, char *message, int exitcode)
 {
     if(message[0] == 'p')
     {
@@ -18,7 +18,7 @@ void error(char *cmd, char *message)
         write(2,"\n", 1);
     }
     free(cmd);
-    exit(EXIT_FAILURE);
+    exit(exitcode);
 }
 
 char **get_all_paths(char **envp)
@@ -79,17 +79,20 @@ void execute(char *argV, char **envp)
 	
 	i = -1;
 	cmd = ft_split(argV, ' ');
-	path = get_path(envp, cmd[0]);
     command = ft_strdup(cmd[0]);
+    while (cmd[++i])
+		free(cmd[i]);
+    free(cmd);
+
+    if (command[0] == '\0')
+        return ;
+
+	path = get_path(envp, command);
 	if (!path)	
-	{
-		while (cmd[++i])
-			free(cmd[i]);
-		free(cmd);
-        error(command, "command not found");
-	}
-	if (execve(path, cmd, envp) == -1)
-		error(argV ,"execve");
+        error(command, "command not found", 127);
+
+	if (execve(path, command, envp) == -1)
+		error(argV ,"execve", 1);
     free(path);
     free(command);
 }
@@ -105,7 +108,7 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
         close(pipefd[0]);
         file = open(filename, O_RDONLY, 0777);
         if (file == -1)
-		    error(filename, "perror");
+		    error(filename, "perror", 1);
         dup2(pipefd[1], STDOUT_FILENO); //dup pipefd and assign stdout so that stdout goes to the pipe
         close(pipefd[1]);
 	    dup2(file, STDIN_FILENO);       //dup file and assign stdin to read from file and not stdin
@@ -118,7 +121,7 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
         filename = ft_strdup(argV[4]);
 	    file = open(argV[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	    if (file == -1)
-		    error(filename, "perror");
+		    error(filename, "perror", 1);
         close(pipefd[1]);
 	    dup2(pipefd[0], STDIN_FILENO);  //dup pipefd to stin to read from pipe
         close(pipefd[0]);
@@ -137,14 +140,19 @@ int main(int argC, char **argV, char **envp)
     if(argC == 5)
     {
         if(pipe(pipefd) == -1)
-            error(argV[1], "pipefd1");
+            error(argV[1], "pipefd1", 1);
+
         pid = fork();
         if(pid == -1)
-            error(argV[1], "pipefd2");
+            error(argV[1], "pipefd2", 1);
+        
         if(pid == 0)
             pid_handler(argV, envp, pipefd, 0); //child
-        waitpid(pid, NULL, 0);
-        pid_handler(argV, envp, pipefd, 1);     //parent
+        else
+        {
+            waitpid(pid, NULL, 0);
+            pid_handler(argV, envp, pipefd, 1);     //parent
+        }
     }
     return 0;
 }
