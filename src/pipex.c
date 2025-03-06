@@ -76,22 +76,26 @@ void execute(char *argV, char **envp)
 	int 	i;
 	char	*path;
     char    *command;
-	
+
 	i = -1;
 	cmd = ft_split(argV, ' ');
+	path = get_path(envp, cmd[0]);
     command = ft_strdup(cmd[0]);
-    while (cmd[++i])
-		free(cmd[i]);
-    free(cmd);
 
-    if (command[0] == '\0')
-        return ;
+    if(ft_strncmp(command,"test",4))
+    {
+        printf("test");
+    }
 
-	path = get_path(envp, command);
 	if (!path)	
+	{
+		while (cmd[++i])
+			free(cmd[i]);
+		free(cmd);
         error(command, "command not found", 127);
+	}
 
-	if (execve(path, command, envp) == -1)
+	if (execve(path, cmd, envp) == -1)
 		error(argV ,"execve", 1);
     free(path);
     free(command);
@@ -148,11 +152,9 @@ int main(int argC, char **argV, char **envp)
         
         if(pid == 0)
             pid_handler(argV, envp, pipefd, 0); //child
-        else
-        {
-            waitpid(pid, NULL, 0);
-            pid_handler(argV, envp, pipefd, 1);     //parent
-        }
+        
+        waitpid(pid, NULL, 0);
+        pid_handler(argV, envp, pipefd, 1);     //parent
     }
     return 0;
 }
