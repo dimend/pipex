@@ -52,7 +52,8 @@ char *get_path(char **envp, char *cmd)
     while(paths[i])
     {
         paths[i] = ft_strcatrealloc(paths[i], "/");
-        paths[i] = ft_strcatrealloc(paths[i], cmd);
+        if(cmd)
+            paths[i] = ft_strcatrealloc(paths[i], cmd);
         if (access(paths[i], F_OK) == 0)
         {
             finalpath = ft_strdup(paths[i]);
@@ -78,16 +79,14 @@ void execute(char *argV, char **envp)
     char    *command;
 
 	i = -1;
-	cmd = ft_split(argV, ' ');
+    command = ft_strdup(" ");
+    cmd = ft_split(argV, ' ');
 	path = get_path(envp, cmd[0]);
-    command = ft_strdup(cmd[0]);
-
-    if(ft_strncmp(command,"test",4))
+    if(argV[0] != '\0')
     {
-        printf("test");
+        command = ft_strdup(cmd[0]);
     }
-
-	if (!path)	
+	if(!path)	
 	{
 		while (cmd[++i])
 			free(cmd[i]);
@@ -149,12 +148,14 @@ int main(int argC, char **argV, char **envp)
         pid = fork();
         if(pid == -1)
             error(argV[1], "pipefd2", 1);
-        
+
         if(pid == 0)
             pid_handler(argV, envp, pipefd, 0); //child
         
         waitpid(pid, NULL, 0);
         pid_handler(argV, envp, pipefd, 1);     //parent
     }
+    else
+        error(NULL, "Usage: ./pipex infile cmd1 cmd2 outfile", 1);
     return 0;
 }
