@@ -32,6 +32,8 @@ char **get_all_paths(char **envp)
         if(envp[i][0] == 'P' && envp[i][1] == 'A' && envp[i][2] == 'T' && envp[i][3] == 'H')
         {
             paths = ft_split(envp[i] + 5, ':');
+            if (paths == NULL)
+                return NULL;
             break;
         } 
         i++;
@@ -52,14 +54,14 @@ char *get_path(char **envp, char *cmd)
     while(paths[i])
     {
         paths[i] = ft_strcatrealloc(paths[i], "/");
-        if(cmd)
-            paths[i] = ft_strcatrealloc(paths[i], cmd);
+        paths[i] = ft_strcatrealloc(paths[i], cmd);
         if (access(paths[i], F_OK) == 0)
         {
             finalpath = ft_strdup(paths[i]);
             i = -1;
             while (paths[++i])
 			    free(paths[i]);
+            free(paths);
             return (finalpath);
         }
         i++;
@@ -79,14 +81,11 @@ void execute(char *argV, char **envp)
     char    *command;
 
 	i = -1;
-    command = ft_strdup(" ");
-    cmd = ft_split(argV, ' ');
+	cmd = ft_split(argV, ' ');
 	path = get_path(envp, cmd[0]);
-    if(argV[0] != '\0')
-    {
-        command = ft_strdup(cmd[0]);
-    }
-	if(!path)	
+    command = ft_strdup(cmd[0]);
+        
+	if(!path || cmd[0][0] == '\0')	
 	{
 		while (cmd[++i])
 			free(cmd[i]);
@@ -95,7 +94,14 @@ void execute(char *argV, char **envp)
 	}
 
 	if (execve(path, cmd, envp) == -1)
-		error(argV ,"execve", 1);
+    {
+        free(path);
+        while (cmd[++i])
+            free(cmd[i]);
+        free(cmd);
+		error(command ,"execve failed", 1);        
+    }
+
     free(path);
     free(command);
 }
@@ -135,12 +141,29 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
     }
 }
 
+short int checkcommands(char *cmd1, char *cmd2)
+{
+    char *result = ft_strdup("''");
+
+    if(!cmd1 || cmd1[0] == '\0')
+    {
+        error(result, "command not found", 127);
+    }
+    if(!cmd2 || cmd2[0] == '\0')
+    {
+        error(result, "command not found", 127);
+    }
+
+    free(result);
+    return (0);
+}
+
 int main(int argC, char **argV, char **envp) 
 {
     int pipefd[2];
     pid_t pid;
 
-    if(argC == 5)
+    if(argC == 5 && checkcommands(argV[2], argV[3]) == 0)
     {
         if(pipe(pipefd) == -1)
             error(argV[1], "pipefd1", 1);
