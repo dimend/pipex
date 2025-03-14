@@ -1,0 +1,62 @@
+4:
+./pipex '' 'cat' 'cat' 'outfile2'
+< '' cat | cat > outfile
+
+5:
+./pipex 'infile' '' '' 'outfile2'
+< infile '' | '' > outfile
+
+9:
+./pipex 'infile' '/bin/hello' '/bin/hello' 'outfile2'
+< infile /bin/hello | /bin/hello > outfile
+
+10:
+./pipex 'infile' '/bin/echo hello world' '/bin/cat' outfile2
+< infile /bin/echo hello world | /bin/cat > outfile
+
+11:
+./pipex 'infile' 'sleep 5' 'echo hello world' 'outfile2'
+< infile sleep 5 | echo hello world > outfile
+
+12:
+./pipex 'infile' './testsegv' './testsegv' 'outfile2'
+< infile ./testsegv | ./testsegv > outfile
+
+13:
+./pipex 'infile' './myfolder' 'cat' 'outfile2'
+< infile ./myfolder | cat > outfile
+
+14:
+./pipex 'infile' 'cat' './myfolder' 'outfile2'
+< infile cat | ./myfolder > outfile
+
+15:
+./pipex 'testsegv.c' 'cat' 'grep str\ =\ NULL' 'outfile2'
+< testsegv.c cat | grep str\ =\ NULL > outfile
+
+16:
+./pipex 'infile2' 'cat' 'awk -F ";" "{print $1}"' 'outfile2'
+< infile2 cat | awk -F ";" '{print $1}' > outfile
+
+17:
+./pipex 'infile2' '"l""s"' '"normi""""nette" """-""R""" "CheckForbi""""ddenSo""urce""Header"' 'outfile2'
+< infile2 "l""s" | "normi""""nette" """-""R""" "CheckForbi""""ddenSo""urce""Header" > outfile
+
+18:
+./pipex 'infile2' '\a\b\c' '"l""s"""\ """""-""l""a"' 'outfile2'
+< infile2 \a\b\c | "l""s"""\ """""-""l""a" > outfile
+
+19:
+./pipex 'infile2' '\a\b\c\' '"l""s"""\ """""-""l""a"' 'outfile2'
+< infile2 \a\b\c | "l""s"""\ """""-""l""a" > outfile
+
+20:
+./pipex 'infile2' 'myfolder' 'myfolder' 'outfile2'
+< infile2 myfolder | myfolder > outfile
+
+21:
+./pipex 'infile2' 'copipex' 'copipex' 'outfile2'
+< infile2 copipex | copipex > outfile
+
+22 : ./pipex infile2 ls "wc -l" outfile2
+< infile2 ls | wc -l > outfile when PATH is not setted

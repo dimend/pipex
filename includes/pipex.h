@@ -9,5 +9,9 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
+char **get_all_paths(char **envp);
+char *get_path(char **envp, char *cmd);
+short int checkargs(char *file, char *cmd);
+void error(char *cmd, char *message, int exitcode);
 
 #endif

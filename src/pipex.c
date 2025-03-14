@@ -1,6 +1,5 @@
 #include "pipex.h"
 #include "libft/libft.h"
-#include <stdio.h>
 
 void error(char *cmd, char *message, int exitcode)
 {
@@ -21,58 +20,6 @@ void error(char *cmd, char *message, int exitcode)
     exit(exitcode);
 }
 
-char **get_all_paths(char **envp)
-{
-    int i;
-    char **paths = NULL;
-
-    i = 0;
-    while(envp[i])
-    {
-        if(envp[i][0] == 'P' && envp[i][1] == 'A' && envp[i][2] == 'T' && envp[i][3] == 'H')
-        {
-            paths = ft_split(envp[i] + 5, ':');
-            if (paths == NULL)
-                return NULL;
-            break;
-        } 
-        i++;
-    }
-    return (paths);
-}
-
-char *get_path(char **envp, char *cmd)
-{
-    int i;
-    char **paths;
-    char *finalpath;
-
-    paths = get_all_paths(envp);
-    if (!paths)
-        return (NULL);
-    i = 0;
-    while(paths[i])
-    {
-        paths[i] = ft_strcatrealloc(paths[i], "/");
-        paths[i] = ft_strcatrealloc(paths[i], cmd);
-        if (access(paths[i], F_OK) == 0)
-        {
-            finalpath = ft_strdup(paths[i]);
-            i = -1;
-            while (paths[++i])
-			    free(paths[i]);
-            free(paths);
-            return (finalpath);
-        }
-        i++;
-    }
-    i = -1;
-    while (paths[++i])
-		free(paths[i]);
-    free(paths);
-    return (NULL);
-}
-
 void execute(char *argV, char **envp)
 {
 	char	**cmd;
@@ -83,8 +30,7 @@ void execute(char *argV, char **envp)
 	i = -1;
 	cmd = ft_split(argV, ' ');
 	path = get_path(envp, cmd[0]);
-    command = ft_strdup(cmd[0]);
-        
+    command = ft_strdup(cmd[0]);   
 	if(!path || cmd[0][0] == '\0')	
 	{
 		while (cmd[++i])
@@ -92,7 +38,6 @@ void execute(char *argV, char **envp)
 		free(cmd);
         error(command, "command not found", 127);
 	}
-
 	if (execve(path, cmd, envp) == -1)
     {
         free(path);
@@ -101,7 +46,6 @@ void execute(char *argV, char **envp)
         free(cmd);
 		error(command ,"execve failed", 1);        
     }
-
     free(path);
     free(command);
 }
@@ -110,9 +54,18 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
 {
 	int		file;
     char    *filename;
+    
+    checkargs(argV[1], argV[2]);
 
     if(read == 0)
     {
+        // dup2(file, STDIN_FILENO);
+        // close(pipefd[0]);
+        // close(pipefd[1]);
+        // check permission,
+        // handle the redirector,
+        // exec cmd.
+        checkargs(argV[1], argV[2]);
         filename = ft_strdup(argV[1]);
         close(pipefd[0]);
         file = open(filename, O_RDONLY, 0777);
@@ -127,6 +80,9 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
     }
     else
     {
+        // close(pipefd[1]);
+        // waitpid(pid, 0, NULL);
+        checkargs(argV[4], argV[3]);
         filename = ft_strdup(argV[4]);
 	    file = open(argV[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	    if (file == -1)
@@ -141,44 +97,38 @@ void pid_handler(char **argV, char **envp, int *pipefd, short int read)
     }
 }
 
-short int checkcommands(char *cmd1, char *cmd2)
-{
-    char *result = ft_strdup("''");
-
-    if(!cmd1 || cmd1[0] == '\0')
-    {
-        error(result, "command not found", 127);
-    }
-    if(!cmd2 || cmd2[0] == '\0')
-    {
-        error(result, "command not found", 127);
-    }
-
-    free(result);
-    return (0);
-}
-
 int main(int argC, char **argV, char **envp) 
 {
     int pipefd[2];
     pid_t pid;
 
-    if(argC == 5 && checkcommands(argV[2], argV[3]) == 0)
+    if(argC == 5)
     {
         if(pipe(pipefd) == -1)
             error(argV[1], "pipefd1", 1);
 
         pid = fork();
         if(pid == -1)
-            error(argV[1], "pipefd2", 1);
+            error(argV[4], "pipefd2", 1);
 
         if(pid == 0)
             pid_handler(argV, envp, pipefd, 0); //child
         
         waitpid(pid, NULL, 0);
         pid_handler(argV, envp, pipefd, 1);     //parent
+        // pid1 = fork();
+        // if (pid == 0) { exit()}
+        // close(pipefd[1]);
+        // pid2 = fork();
+        // if (pid == 0) { exit()}
+        // close(pipefd[0]);
+        // waitpid(pid1);
+        // waitpid(pid2);
+        // exit();
+
     }
     else
         error(NULL, "Usage: ./pipex infile cmd1 cmd2 outfile", 1);
     return 0;
 }
+
