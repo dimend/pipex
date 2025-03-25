@@ -9,11 +9,9 @@ char **get_all_paths(char **envp)
     i = 0;
     while(envp[i])
     {
-        if(ft_strncmp("PATH", envp[i], 4) == 0)
+        if(envp[i][0] == 'P' && envp[i][1] == 'A' && envp[i][2] == 'T' && envp[i][3] == 'H')
         {
             paths = ft_split(envp[i] + 5, ':');
-            if (paths == NULL)
-                return NULL;
             break;
         } 
         i++;
@@ -28,29 +26,25 @@ char *get_path(char **envp, char *cmd)
     char *finalpath;
 
     paths = get_all_paths(envp);
+    finalpath = NULL;
     if (!paths)
         return (NULL);
-    i = 0;
-    while(paths[i])
+    i = -1;
+    while(paths[++i])
     {
         paths[i] = ft_strcatrealloc(paths[i], "/");
         paths[i] = ft_strcatrealloc(paths[i], cmd);
         if (access(paths[i], F_OK) == 0)
         {
             finalpath = ft_strdup(paths[i]);
-            i = -1;
-            while (paths[++i])
-			    free(paths[i]);
-            free(paths);
-            return (finalpath);
+            break;
         }
-        i++;
     }
     i = -1;
     while (paths[++i])
 		free(paths[i]);
     free(paths);
-    return (NULL);
+    return (finalpath);
 }
 
 int checkcmd(char *cmd)
@@ -60,13 +54,15 @@ int checkcmd(char *cmd)
 
     directory = 0;
     i = 0;    
-    while(cmd[i])
+    while(cmd[i] != '\0')
     {
         if(cmd[i] == '/')
-        {
-            directory = i;
-            i++;
-        }
+            directory++;
+        i++;
     }
+
+    if(cmd[0] == '\0')
+        return (-1);
+
     return (directory);
 }
