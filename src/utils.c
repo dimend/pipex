@@ -53,16 +53,20 @@ char *get_path(char **envp, char *cmd)
     return (NULL);
 }
 
-short int checkargs(char *file, char *cmd)
+int checkcmd(char *cmd)
 {
-    char *result = ft_strdup("");
+    int directory;
+    int i;
 
-    if(!file || file[0] == '\0')
-        error(result, "No such file or directory", 1);
-
-    if(!cmd || cmd[0] == '\0')
-        error(result, "comand not found", 127);
-
-    free(result);
-    return (0);
+    directory = 0;
+    i = 0;    
+    while(cmd[i])
+    {
+        if(cmd[i] == '/')
+        {
+            directory = i;
+            i++;
+        }
+    }
+    return (directory);
 }
