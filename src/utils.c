@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:26 by dimendon          #+#    #+#             */
-/*   Updated: 2025/03/26 19:19:12 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/03/26 20:07:58 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,11 +60,12 @@ char	*get_path(char **envp, char **cmd, int *pipefd)
 	free(paths);
 	if(!finalpath)
 	{
+		finalpath = ft_strdup(cmd[0]);
 		i = -1;
 		while (cmd[++i])
 			free(cmd[i]);
 		free(cmd);
-		error(NULL,"command not found",127, pipefd);	
+		error(finalpath,"command not found",127, pipefd);	
 	}
 	return (finalpath);
 }
