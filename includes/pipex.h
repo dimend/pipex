@@ -9,8 +9,9 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
-char *get_path(char **envp, char *cmd);
-int checkcmd(char *cmd);
-void error(char *cmd, char *message, int exitcode);
+char    *get_path(char **envp, char **cmd, int *pipefd);
+int     checkcmd(char *cmd, int *pipefd);
+void    error(char *cmd, char *message, int exitcode, int *pipefd);
+char    *choosecmd(char *argv);
 
 #endif

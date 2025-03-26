@@ -8,7 +8,9 @@ LIBFT_DIR = src/libft
 LIBFT_LIB = $(LIBFT_DIR)/libft.a
 
 SRCS =	src/pipex.c \
-		src/utils.c
+		src/utils.c \
+		src/error_handling.c
+		
 OBJS = $(SRCS:src/%.c=$(OBJ_PATH)%.o)
 HEADERS = includes/pipex.h
 
