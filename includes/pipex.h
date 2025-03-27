@@ -10,8 +10,9 @@
 # include <sys/wait.h>
 
 char    *get_path(char **envp, char **cmd, int *pipefd);
-int     checkcmd(char *cmd, int *pipefd);
+int     checkargs(char *cmd, int *pipefd);
 void    error(char *cmd, char *message, int exitcode, int *pipefd);
 char    *choosecmd(char *argv);
+void    execute(char *argv, char **envp, int *pipefd);
 
 #endif

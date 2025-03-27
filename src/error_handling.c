@@ -13,11 +13,11 @@
 #include "libft/libft.h"
 #include "pipex.h"
 
-static int	is_folder(char *cmd)
+static int	is_folder(char *arg)
 {
 	int	fd_test;
 
-	fd_test = open(cmd, O_DIRECTORY);
+	fd_test = open(arg, O_DIRECTORY);
 	if (fd_test != -1)
 	{
 		close(fd_test);
@@ -26,24 +26,21 @@ static int	is_folder(char *cmd)
 	return (0);
 }
 
-int	checkcmd(char *cmd, int *pipefd)
+int	checkargs(char *arg, int *pipefd)
 {
 	int	directory;
 	int	i;
 
 	directory = 0;
 	i = 0;
-	while (cmd[i] != '\0')
+	while (arg[i] != '\0')
 	{
-		if (cmd[i] == '/')
+		if (arg[i] == '/')
 			directory++;
 		i++;
 	}
-	if (cmd[0] == '\0')
-		return (-1);
-	if (is_folder(cmd) == 126)
-		error(cmd, "Is a directory", 126, pipefd);
-	free(cmd);
+	if (is_folder(arg) == 126)
+		error(arg, "Is a directory", 126, pipefd);
 	return (directory);
 }
 
@@ -86,7 +83,7 @@ void	error(char *cmd, char *message, int exitcode, int *pipefd)
 		ft_putstr_fd(message, 2);
 		write(2, "\n", 1);
 	}
-	if (cmd)
+	if (cmd && exitcode == 127)
 		free(cmd);
 	exit(exitcode);
 }
