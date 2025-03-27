@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:26 by dimendon          #+#    #+#             */
-/*   Updated: 2025/03/26 20:07:58 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/03/27 16:28:13 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,11 +106,21 @@ void	execute(char *argv, char **envp, int *pipefd)
 {
 	char	**cmd;
 	char	*path;
+	char	*auxcmd;
 	int		i;
 
 	i = -1;
 	cmd = NULL;
+	auxcmd = NULL;
     path = parse_command_and_path(argv, envp, &cmd, pipefd);
+	if(path == NULL)
+	{
+		auxcmd = ft_strdup(cmd[0]);
+		while (cmd[++i])
+            free(cmd[i]);
+        free(cmd);
+		error(auxcmd, "No such file or directory", 127, pipefd);
+	}
 	if (execve(path, cmd, envp) == -1)
     {
         while (cmd[++i])
