@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:26 by dimendon          #+#    #+#             */
-/*   Updated: 2025/03/27 16:28:13 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/03/27 20:22:53 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,11 @@ void	freepath_checkfinalpath(char **paths, char *finalpath, char **cmd, int *pip
 	int i;
 
 	i = -1;
+	if(!finalpath && !paths)
+	{
+		
+	}
+		
 	while (paths[++i])
 		free(paths[i]);
 	free(paths);
@@ -44,6 +49,7 @@ char	**get_all_paths(char **envp)
 		if (envp[i][0] == 'P' && envp[i][1] == 'A' && envp[i][2] == 'T'
 			&& envp[i][3] == 'H')
 		{
+			/// check for malloc fail
 			paths = ft_split(envp[i] + 5, ':');
 			break ;
 		}
@@ -67,9 +73,13 @@ char	*get_path(char **envp, char **cmd, int *pipefd)
 	{
 		paths[i] = ft_strcatrealloc(paths[i], "/");
 		paths[i] = ft_strcatrealloc(paths[i], cmd[0]);
-		if (access(paths[i], F_OK) == 0)
+		if (paths[i] && access(paths[i], F_OK) == 0)
 		{
 			finalpath = ft_strdup(paths[i]);
+			if (!finalpath || !paths)
+			{
+				error(NULL, "Malloc fail", -1, pipefd);
+			}
 			break ;
 		}
 	}

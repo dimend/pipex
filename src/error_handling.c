@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:21:45 by dimendon          #+#    #+#             */
-/*   Updated: 2025/03/26 20:10:59 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/03/27 17:28:11 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ int	checkargs(char *arg, int *pipefd)
 			directory++;
 		i++;
 	}
-	if (is_folder(arg) == 126)
+	if (is_folder(arg) == 126 && directory > 0)
 		error(arg, "Is a directory", 126, pipefd);
 	return (directory);
 }
