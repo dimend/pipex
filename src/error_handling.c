@@ -53,6 +53,8 @@ char	*choosecmd(char *argv)
 	cmd = NULL;
 	i = 0;
 	cmd = ft_split(argv, '/');
+	if (!cmd)
+		return (NULL);
 	while (cmd[i])
 		i++;
 	result = ft_strdup(cmd[i - 1]);

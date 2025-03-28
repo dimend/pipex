@@ -22,9 +22,11 @@ void	readchild(char **argv, char **envp, int *pipefd)
 	file = open(argv[1], O_RDONLY);
 	if (file == -1)
 		error(argv[1], "No such file or directory", 1, pipefd);
-	dup2(pipefd[1], STDOUT_FILENO);
+	if (dup2(pipefd[1], STDOUT_FILENO) == -1)
+		error(NULL, "dup2 pipefd[1] failed", -1, pipefd);
 	close(pipefd[1]);
-	dup2(file, STDIN_FILENO);
+	if (dup2(file, STDIN_FILENO) == -1)
+		error(NULL, "dup2 file failed", -1, pipefd);
 	close(file);
 	if(argv[2][0] == '\0')
 		error(NULL, "command not found", 127, pipefd);
@@ -40,9 +42,11 @@ void	writechild(char **argv, char **envp, int *pipefd)
 	if (file == -1)
 		error(argv[4], "No such file or directory", 1, pipefd);
 	close(pipefd[1]);
-	dup2(pipefd[0], STDIN_FILENO);
+	if (dup2(pipefd[0], STDOUT_FILENO) == -1)
+		error(NULL, "dup2 pipefd[0] failed", -1, pipefd);
 	close(pipefd[0]);
-	dup2(file, STDOUT_FILENO);
+	if (dup2(file, STDIN_FILENO) == -1)
+		error(NULL, "dup2 file failed", -1, pipefd);
 	close(file);
 	if(argv[3][0] == '\0')
 		error(NULL, "command not found", 127, pipefd);
@@ -76,17 +80,17 @@ void	create_child_processes(char **argv, char **envp, pid_t *pid1, pid_t *pid2)
 	int pipefd[2];
 
 	if (pipe(pipefd) == -1)
-		error(argv[1], "pipefd1", 1, pipefd);
+		error(argv[1], "fail pipefd1", -1, pipefd);
 	// Create first child process
 	*pid1 = fork();
 	if (*pid1 == -1)
-		error(argv[1], "fork1", 1, pipefd);
+		error(argv[1], "fail fork1", -1, pipefd);
 	if (*pid1 == 0)
 		readchild(argv, envp, pipefd);
 	// Create second child process
 	*pid2 = fork();
 	if (*pid2 == -1)
-		error(argv[4], "fork2", 1, pipefd);
+		error(argv[4], "fail fork2", -1, pipefd);
 	if (*pid2 == 0)
 		writechild(argv, envp, pipefd);
 	close(pipefd[0]);

@@ -20,9 +20,11 @@ void	freepath_checkfinalpath(char **paths, char *finalpath, char **cmd, int *pip
 	i = -1;
 	if(!finalpath && !paths)
 	{
-		
+		while (cmd[++i])
+			free(cmd[i]);
+		free(cmd);
+		error(NULL, "Malloc fail", -1, pipefd);
 	}
-		
 	while (paths[++i])
 		free(paths[i]);
 	free(paths);
@@ -65,21 +67,18 @@ char	*get_path(char **envp, char **cmd, int *pipefd)
 	char	*finalpath;
 
 	paths = get_all_paths(envp);
-	finalpath = NULL;
 	if (!paths)
 		return (NULL);
+	finalpath = NULL;
 	i = -1;
 	while (paths[++i])
 	{
 		paths[i] = ft_strcatrealloc(paths[i], "/");
-		paths[i] = ft_strcatrealloc(paths[i], cmd[0]);
+		if(paths[i])
+			paths[i] = ft_strcatrealloc(paths[i], cmd[0]);
 		if (paths[i] && access(paths[i], F_OK) == 0)
 		{
 			finalpath = ft_strdup(paths[i]);
-			if (!finalpath || !paths)
-			{
-				error(NULL, "Malloc fail", -1, pipefd);
-			}
 			break ;
 		}
 	}
@@ -90,23 +89,30 @@ char	*get_path(char **envp, char **cmd, int *pipefd)
 char *parse_command_and_path(char *argv, char **envp, char ***cmd, int *pipefd)
 {
     char *path;
-	int checkcmd;
+	int isdirectory;
 
-	checkcmd = checkargs(argv, pipefd);
-    *cmd = NULL;
+	*cmd = NULL;
     path = NULL;
-    if ( checkcmd == 0)
+	isdirectory = checkargs(argv, pipefd);
+    if (isdirectory == 0)
     {
         *cmd = ft_split(argv, ' ');
+		if(*cmd == NULL)
+			error(NULL, "Malloc fail", -1, pipefd)
         path = get_path(envp, *cmd, pipefd);
     }
 	else
     {
         path = choosecmd(argv);
+		if (path == NULL)
+			error(NULL, "Malloc fail", -1, pipefd)
         *cmd = ft_split(path, ' ');
         free(path);
-        path = ft_strdup("");
+		if(!cmd)
+			error(NULL, "Malloc fail", -1, pipefd)
         path = ft_strcatrealloc(path, argv);
+		if(!path)
+			error(NULL, "Malloc fail", -1, pipefd)
         path = ft_strtok(path, ' ');
     }
     return (path);
@@ -129,6 +135,8 @@ void	execute(char *argv, char **envp, int *pipefd)
 		while (cmd[++i])
             free(cmd[i]);
         free(cmd);
+		if(!auxcmd)
+			error(NULL, "Malloc fail", -1, pipefd)
 		error(auxcmd, "No such file or directory", 127, pipefd);
 	}
 	if (execve(path, cmd, envp) == -1)
