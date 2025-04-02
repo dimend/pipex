@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:41 by dimendon          #+#    #+#             */
-/*   Updated: 2025/03/26 20:10:38 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:40:42 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ void	writechild(char **argv, char **envp, int *pipefd)
 	execute(argv[3], envp, pipefd);
 }
 
-int	handle_child_process_status(pid_t pid1, pid_t pid2)
+int	handle_child_process_status(pid_t pid1, pid_t pid2, int *pipefd)
 {
 	int status1;
 	int status2;
@@ -61,8 +61,10 @@ int	handle_child_process_status(pid_t pid1, pid_t pid2)
 
 	status1 = 0;
 	status2 = 0;
-	waitpid(pid1, &status1, 0);
-	waitpid(pid2, &status2, 0);
+	if(waitpid(pid1, &status1, 0) == -1)
+		error(NULL, "waitpid1 failed", 1, pipefd);
+	if(waitpid(pid2, &status2, 0) == -1)
+		error(NULL, "waitpid2 failed", 1, pipefd);
 	if (status1 == 0 || status2 == 0)
 		return (0);
 	// If the second child was terminated by a signal
@@ -78,7 +80,9 @@ int	handle_child_process_status(pid_t pid1, pid_t pid2)
 void	create_child_processes(char **argv, char **envp, pid_t *pid1, pid_t *pid2)
 {
 	int pipefd[2];
-
+	
+	pipefd[0] = -1;
+	pipefd[1] = -1;
 	if (pipe(pipefd) == -1)
 		error(argv[1], "fail pipefd1", -1, pipefd);
 	// Create first child process

@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:26 by dimendon          #+#    #+#             */
-/*   Updated: 2025/03/27 20:22:53 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 15:30:41 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,21 +98,21 @@ char *parse_command_and_path(char *argv, char **envp, char ***cmd, int *pipefd)
     {
         *cmd = ft_split(argv, ' ');
 		if(*cmd == NULL)
-			error(NULL, "Malloc fail", -1, pipefd)
-        path = get_path(envp, *cmd, pipefd);
+			error(NULL, "Malloc fail", -1, pipefd);
+        path = get_path(envp, *cmd, pipefd);;
     }
 	else
     {
         path = choosecmd(argv);
 		if (path == NULL)
-			error(NULL, "Malloc fail", -1, pipefd)
+			error(NULL, "Malloc fail", -1, pipefd);
         *cmd = ft_split(path, ' ');
         free(path);
 		if(!cmd)
-			error(NULL, "Malloc fail", -1, pipefd)
+			error(NULL, "Malloc fail", -1, pipefd);
         path = ft_strcatrealloc(path, argv);
 		if(!path)
-			error(NULL, "Malloc fail", -1, pipefd)
+			error(NULL, "Malloc fail", -1, pipefd);
         path = ft_strtok(path, ' ');
     }
     return (path);
@@ -136,16 +136,13 @@ void	execute(char *argv, char **envp, int *pipefd)
             free(cmd[i]);
         free(cmd);
 		if(!auxcmd)
-			error(NULL, "Malloc fail", -1, pipefd)
+			error(NULL, "Malloc fail", -1, pipefd);
 		error(auxcmd, "No such file or directory", 127, pipefd);
 	}
-	if (execve(path, cmd, envp) == -1)
-    {
-        while (cmd[++i])
-            free(cmd[i]);
-        free(cmd);
-        error(path, "No such file or directory", 127, pipefd);
-    }
-	free(path);
+	execve(path, cmd, envp);
+    while (cmd[++i])
+        free(cmd[i]);
+    free(cmd);
+    error(path, "No such file or directory", 127, pipefd);
 }
 
