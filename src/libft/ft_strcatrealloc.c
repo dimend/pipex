@@ -18,7 +18,7 @@ char	*ft_strcatrealloc(char *src, const char *new)
 	int		src_len;
 	int		new_len;
 
-	if(!src)
+	if (!src)
 		src_len = 0;
 	else
 		src_len = ft_strlen(src);
@@ -26,7 +26,7 @@ char	*ft_strcatrealloc(char *src, const char *new)
 	newdata = malloc(src_len + new_len + 1);
 	if (!newdata)
 		return (NULL);
-	if(src)
+	if (src)
 		ft_memcpy(newdata, src, src_len);
 	ft_memcpy(newdata + src_len, new, new_len + 1);
 	free(src);

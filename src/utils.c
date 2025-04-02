@@ -6,19 +6,20 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:26 by dimendon          #+#    #+#             */
-/*   Updated: 2025/04/02 15:30:41 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 16:12:28 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft/libft.h"
 #include "pipex.h"
 
-void	freepath_checkfinalpath(char **paths, char *finalpath, char **cmd, int *pipefd)
+void	freepath_checkfinalpath(char **paths, char *finalpath, char **cmd,
+		int *pipefd)
 {
-	int i;
+	int	i;
 
 	i = -1;
-	if(!finalpath && !paths)
+	if (!finalpath && !paths)
 	{
 		while (cmd[++i])
 			free(cmd[i]);
@@ -28,14 +29,14 @@ void	freepath_checkfinalpath(char **paths, char *finalpath, char **cmd, int *pip
 	while (paths[++i])
 		free(paths[i]);
 	free(paths);
-	if(!finalpath)
+	if (!finalpath)
 	{
 		finalpath = ft_strdup(cmd[0]);
 		i = -1;
 		while (cmd[++i])
 			free(cmd[i]);
 		free(cmd);
-		error(finalpath,"command not found",127,pipefd);	
+		error(finalpath, "command not found", 127, pipefd);
 	}
 }
 
@@ -51,7 +52,6 @@ char	**get_all_paths(char **envp)
 		if (envp[i][0] == 'P' && envp[i][1] == 'A' && envp[i][2] == 'T'
 			&& envp[i][3] == 'H')
 		{
-			/// check for malloc fail
 			paths = ft_split(envp[i] + 5, ':');
 			break ;
 		}
@@ -74,7 +74,7 @@ char	*get_path(char **envp, char **cmd, int *pipefd)
 	while (paths[++i])
 	{
 		paths[i] = ft_strcatrealloc(paths[i], "/");
-		if(paths[i])
+		if (paths[i])
 			paths[i] = ft_strcatrealloc(paths[i], cmd[0]);
 		if (paths[i] && access(paths[i], F_OK) == 0)
 		{
@@ -84,38 +84,6 @@ char	*get_path(char **envp, char **cmd, int *pipefd)
 	}
 	freepath_checkfinalpath(paths, finalpath, cmd, pipefd);
 	return (finalpath);
-}
-
-char *parse_command_and_path(char *argv, char **envp, char ***cmd, int *pipefd)
-{
-    char *path;
-	int isdirectory;
-
-	*cmd = NULL;
-    path = NULL;
-	isdirectory = checkargs(argv, pipefd);
-    if (isdirectory == 0)
-    {
-        *cmd = ft_split(argv, ' ');
-		if(*cmd == NULL)
-			error(NULL, "Malloc fail", -1, pipefd);
-        path = get_path(envp, *cmd, pipefd);;
-    }
-	else
-    {
-        path = choosecmd(argv);
-		if (path == NULL)
-			error(NULL, "Malloc fail", -1, pipefd);
-        *cmd = ft_split(path, ' ');
-        free(path);
-		if(!cmd)
-			error(NULL, "Malloc fail", -1, pipefd);
-        path = ft_strcatrealloc(path, argv);
-		if(!path)
-			error(NULL, "Malloc fail", -1, pipefd);
-        path = ft_strtok(path, ' ');
-    }
-    return (path);
 }
 
 void	execute(char *argv, char **envp, int *pipefd)
@@ -128,21 +96,20 @@ void	execute(char *argv, char **envp, int *pipefd)
 	i = -1;
 	cmd = NULL;
 	auxcmd = NULL;
-    path = parse_command_and_path(argv, envp, &cmd, pipefd);
-	if(path == NULL)
+	path = parse_command_and_path(argv, envp, &cmd, pipefd);
+	if (path == NULL)
 	{
 		auxcmd = ft_strdup(cmd[0]);
 		while (cmd[++i])
-            free(cmd[i]);
-        free(cmd);
-		if(!auxcmd)
+			free(cmd[i]);
+		free(cmd);
+		if (!auxcmd)
 			error(NULL, "Malloc fail", -1, pipefd);
 		error(auxcmd, "No such file or directory", 127, pipefd);
 	}
 	execve(path, cmd, envp);
-    while (cmd[++i])
-        free(cmd[i]);
-    free(cmd);
-    error(path, "No such file or directory", 127, pipefd);
+	while (cmd[++i])
+		free(cmd[i]);
+	free(cmd);
+	error(path, "No such file or directory", 127, pipefd);
 }
-

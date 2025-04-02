@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:21:45 by dimendon          #+#    #+#             */
-/*   Updated: 2025/04/02 15:32:52 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 16:37:51 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,9 +67,9 @@ char	*choosecmd(char *argv)
 
 void	error(char *cmd, char *message, int exitcode, int *pipefd)
 {
-	if(pipefd[0] != -1)
+	if (pipefd && pipefd[0] != -1)
 		close(pipefd[0]);
-	if(pipefd[1] != -1)
+	if (pipefd && pipefd[1] != -1)
 		close(pipefd[1]);
 	if (message[0] == 'p')
 	{

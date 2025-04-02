@@ -6,17 +6,16 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:41 by dimendon          #+#    #+#             */
-/*   Updated: 2025/04/02 15:40:42 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 16:37:46 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft/libft.h"
 #include "pipex.h"
 
-// read from infile, write to pipe
 void	readchild(char **argv, char **envp, int *pipefd)
 {
-	int		file;
+	int	file;
 
 	close(pipefd[0]);
 	file = open(argv[1], O_RDONLY);
@@ -28,15 +27,14 @@ void	readchild(char **argv, char **envp, int *pipefd)
 	if (dup2(file, STDIN_FILENO) == -1)
 		error(NULL, "dup2 file failed", -1, pipefd);
 	close(file);
-	if(argv[2][0] == '\0')
+	if (argv[2][0] == '\0')
 		error(NULL, "command not found", 127, pipefd);
 	execute(argv[2], envp, pipefd);
 }
 
-// read from pipe write to outfile
 void	writechild(char **argv, char **envp, int *pipefd)
 {
-	int		file;
+	int	file;
 
 	file = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	if (file == -1)
@@ -48,50 +46,47 @@ void	writechild(char **argv, char **envp, int *pipefd)
 	if (dup2(file, STDIN_FILENO) == -1)
 		error(NULL, "dup2 file failed", -1, pipefd);
 	close(file);
-	if(argv[3][0] == '\0')
+	if (argv[3][0] == '\0')
 		error(NULL, "command not found", 127, pipefd);
 	execute(argv[3], envp, pipefd);
 }
 
-int	handle_child_process_status(pid_t pid1, pid_t pid2, int *pipefd)
+int	handle_child_process_status(pid_t pid1, pid_t pid2)
 {
-	int status1;
-	int status2;
-	int signal_number;
+	int	status1;
+	int	status2;
+	int	signal_number;
 
 	status1 = 0;
 	status2 = 0;
-	if(waitpid(pid1, &status1, 0) == -1)
-		error(NULL, "waitpid1 failed", 1, pipefd);
-	if(waitpid(pid2, &status2, 0) == -1)
-		error(NULL, "waitpid2 failed", 1, pipefd);
+	if (waitpid(pid1, &status1, 0) == -1)
+		error(NULL, "waitpid1 failed", 1, NULL);
+	if (waitpid(pid2, &status2, 0) == -1)
+		error(NULL, "waitpid2 failed", 1, NULL);
 	if (status1 == 0 || status2 == 0)
 		return (0);
-	// If the second child was terminated by a signal
 	if (WIFSIGNALED(status2))
 	{
 		signal_number = WTERMSIG(status2);
 		return (128 + signal_number);
 	}
-	// Return the exit status of the second child
 	return (WEXITSTATUS(status2));
 }
 
-void	create_child_processes(char **argv, char **envp, pid_t *pid1, pid_t *pid2)
+void	create_child_processes(char **argv, char **envp, pid_t *pid1,
+		pid_t *pid2)
 {
-	int pipefd[2];
-	
+	int	pipefd[2];
+
 	pipefd[0] = -1;
 	pipefd[1] = -1;
 	if (pipe(pipefd) == -1)
 		error(argv[1], "fail pipefd1", -1, pipefd);
-	// Create first child process
 	*pid1 = fork();
 	if (*pid1 == -1)
 		error(argv[1], "fail fork1", -1, pipefd);
 	if (*pid1 == 0)
 		readchild(argv, envp, pipefd);
-	// Create second child process
 	*pid2 = fork();
 	if (*pid2 == -1)
 		error(argv[4], "fail fork2", -1, pipefd);
@@ -103,8 +98,8 @@ void	create_child_processes(char **argv, char **envp, pid_t *pid1, pid_t *pid2)
 
 int	main(int argc, char **argv, char **envp)
 {
-	pid_t pid1;
-	pid_t pid2;
+	pid_t	pid1;
+	pid_t	pid2;
 
 	if (argc == 5)
 	{
