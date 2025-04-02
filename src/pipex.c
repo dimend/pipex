@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:41 by dimendon          #+#    #+#             */
-/*   Updated: 2025/04/02 16:37:46 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 17:24:04 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,12 @@ void	readchild(char **argv, char **envp, int *pipefd)
 	close(pipefd[0]);
 	file = open(argv[1], O_RDONLY);
 	if (file == -1)
-		error(argv[1], "No such file or directory", 1, pipefd);
+		error(argv[1], strerror(errno), 1, pipefd);
 	if (dup2(pipefd[1], STDOUT_FILENO) == -1)
-		error(NULL, "dup2 pipefd[1] failed", -1, pipefd);
+		error(NULL, "dup2 pipefd[1] failed", 1, pipefd);
 	close(pipefd[1]);
 	if (dup2(file, STDIN_FILENO) == -1)
-		error(NULL, "dup2 file failed", -1, pipefd);
+		error(NULL, "dup2 file failed", 1, pipefd);
 	close(file);
 	if (argv[2][0] == '\0')
 		error(NULL, "command not found", 127, pipefd);
@@ -38,13 +38,13 @@ void	writechild(char **argv, char **envp, int *pipefd)
 
 	file = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	if (file == -1)
-		error(argv[4], "No such file or directory", 1, pipefd);
+		error(argv[4], strerror(errno), 1, pipefd);
 	close(pipefd[1]);
-	if (dup2(pipefd[0], STDOUT_FILENO) == -1)
-		error(NULL, "dup2 pipefd[0] failed", -1, pipefd);
+	if (dup2(pipefd[0], STDIN_FILENO) == -1)
+		error(NULL, "dup2 pipefd[0] failed", 1, pipefd);
 	close(pipefd[0]);
-	if (dup2(file, STDIN_FILENO) == -1)
-		error(NULL, "dup2 file failed", -1, pipefd);
+	if (dup2(file, STDOUT_FILENO) == -1)
+		error(NULL, "dup2 file failed", 1, pipefd);
 	close(file);
 	if (argv[3][0] == '\0')
 		error(NULL, "command not found", 127, pipefd);
@@ -81,15 +81,15 @@ void	create_child_processes(char **argv, char **envp, pid_t *pid1,
 	pipefd[0] = -1;
 	pipefd[1] = -1;
 	if (pipe(pipefd) == -1)
-		error(argv[1], "fail pipefd1", -1, pipefd);
+		error(argv[1], "fail pipefd1", 1, pipefd);
 	*pid1 = fork();
 	if (*pid1 == -1)
-		error(argv[1], "fail fork1", -1, pipefd);
+		error(argv[1], "fail fork1", 1, pipefd);
 	if (*pid1 == 0)
 		readchild(argv, envp, pipefd);
 	*pid2 = fork();
 	if (*pid2 == -1)
-		error(argv[4], "fail fork2", -1, pipefd);
+		error(argv[4], "fail fork2", 1, pipefd);
 	if (*pid2 == 0)
 		writechild(argv, envp, pipefd);
 	close(pipefd[0]);

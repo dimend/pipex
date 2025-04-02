@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 16:14:28 by dimendon          #+#    #+#             */
-/*   Updated: 2025/04/02 16:14:29 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 17:15:40 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <unistd.h>
+# include <errno.h> 
 
 char	*get_path(char **envp, char **cmd, int *pipefd);
 int		checkargs(char *cmd, int *pipefd);

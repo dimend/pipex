@@ -6,7 +6,7 @@
 /*   By: dimendon <dimendon@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 17:14:26 by dimendon          #+#    #+#             */
-/*   Updated: 2025/04/02 16:12:28 by dimendon         ###   ########.fr       */
+/*   Updated: 2025/04/02 17:13:49 by dimendon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ void	execute(char *argv, char **envp, int *pipefd)
 			free(cmd[i]);
 		free(cmd);
 		if (!auxcmd)
-			error(NULL, "Malloc fail", -1, pipefd);
+			error(NULL, "Malloc fail", 1, pipefd);
 		error(auxcmd, "No such file or directory", 127, pipefd);
 	}
 	execve(path, cmd, envp);
